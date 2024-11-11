@@ -148,5 +148,4 @@ st.markdown("""
 # Footer with a call-to-action and additional icons
 st.markdown("---")
 st.markdown("**Thank you for using the Mental Health Data Analysis Dashboard!** Explore further by adjusting the settings.")
-st.markdown("Icons made by [Flaticon](https://www.flaticon.com/)")
 
