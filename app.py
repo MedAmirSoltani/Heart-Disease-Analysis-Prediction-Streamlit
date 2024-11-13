@@ -230,22 +230,26 @@ if submit_button:
     # Make prediction
     prediction = rf_model.predict(scaled_input)
     prediction_proba = rf_model.predict_proba(scaled_input)
-    
-    # Display result with styling and icons
-    if prediction[0] == 1:
-        result = "High Risk ⚠️"
-        color = "#D9534F"  # Red color for high risk
-    else:
-        result = "Low Risk ✅"
-        color = "#5CB85C"  # Green color for low risk
     probability = f"{prediction_proba[0][prediction[0]]:.2f}"
-    probability_text = f"<p style='font-size: 1.2em; color: {color};'><strong>Probability: {float(probability):.2%}</strong></p>"
-    result_text = f"<h3 style='color: {color};'>{result}</h3>"
 
-    # Display the formatted result in the sidebar
-    st.sidebar.subheader("Prediction Result")
-    st.sidebar.write(f"<p style='font-size: 1.2em; color: {color};'><strong>Probability: {float(probability):.2%}</strong></p>")
-    st.sidebar.write(f"<h3 style='color: {color};'>{result}</h3>")
+# Display result with styling and icons
+if prediction[0] == 1:
+    result = "High Risk ⚠️"
+    color = "#D9534F"  # Red color for high risk
+else:
+    result = "Low Risk ✅"
+    color = "#5CB85C"  # Green color for low risk
+
+# Format the probability and result text with HTML, adding center alignment
+probability = f"{float(probability):.2%}"
+probability_text = f"<p style='font-size: 1.2em; color: {color}; text-align: center;'><strong>Probability: {probability}</strong></p>"
+result_text = f"<h3 style='color: {color}; text-align: center;'>{result}</h3>"
+
+# Display the centered and formatted result in the sidebar
+st.sidebar.markdown("<h3 style='text-align: center;'>Prediction Result</h3>", unsafe_allow_html=True)
+st.sidebar.markdown(result_text, unsafe_allow_html=True)
+st.sidebar.markdown(probability_text, unsafe_allow_html=True)
+
 
 
 
