@@ -69,6 +69,24 @@ def load_and_preprocess_data():
 
 data = load_and_preprocess_data()
 
+
+
+
+import numpy as np
+import joblib
+from sklearn.preprocessing import StandardScaler
+
+# Load the trained model and scaler
+rf_model = joblib.load("random_forest_model.joblib")
+scaler = joblib.load("scaler.joblib")  # Ensure you saved the scaler with joblib
+
+
+
+
+
+
+
+
 # Sidebar for feature selection and plot customization
 st.sidebar.header("Customize Analysis")
 selected_feature = st.sidebar.selectbox(
@@ -99,7 +117,7 @@ if plot_type == "Box Plot":
                      title=f"Heart Disease by {selected_feature}")
 elif plot_type == "Histogram":
     fig = px.histogram(data, x="HeartDisease", color=selected_feature, barmode=barmode_option,
-                       title=f"Heart Disease Distribution with {selected_feature}")
+                       title=f"Heart Disease Distribution with {selected_feature}",histnorm='percent')
 elif plot_type == "Scatter Plot":
     if axis_swap:
         fig = px.scatter(data, x="HeartDisease", y=selected_feature, color=color_option if color_option != "None" else None,
@@ -162,6 +180,77 @@ st.markdown("""
 - **Chronic Health Conditions**: Individuals with chronic conditions, particularly stroke and kidney disease, tend to have a significantly higher risk of heart disease, suggesting an interplay between various health conditions.
 - **Self-Reported Health**: General health perceptions, as reported by individuals, appear to be strongly linked with heart disease risk, indicating that subjective health assessments may reflect underlying risks.
 """)
+
+
+
+
+
+
+
+
+# Define feature names (must match those used when fitting the scaler and model)
+feature_names = [
+    'Smoking', 'AlcoholDrinking', 'Stroke', 'PhysicalHealth', 'DiffWalking', 'Sex', 
+    'Diabetic', 'PhysicalActivity', 'GenHealth', 'SleepTime', 'Asthma', 'KidneyDisease', 
+    'SkinCancer', 'BMI_Category', 'NewAge'
+]
+
+# Input form for prediction
+st.sidebar.header("Heart Disease Prediction")
+with st.sidebar.form("prediction_form"):
+    Smoking = st.selectbox("Smoking", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    AlcoholDrinking = st.selectbox("Alcohol Drinking", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    Stroke = st.selectbox("Stroke", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    PhysicalHealth = st.slider("Physical Health (Poor days)", 0, 30, 15)
+    DiffWalking = st.selectbox("Difficulty Walking", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    Sex = st.selectbox("Sex", [0, 1], format_func=lambda x: "Male" if x == 1 else "Female")
+    Diabetic = st.selectbox("Diabetic", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    PhysicalActivity = st.selectbox("Physical Activity", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    GenHealth = st.selectbox("General Health", [0, 1, 2, 3, 4], format_func=lambda x: ["Poor", "Fair", "Good", "Very Good", "Excellent"][x])
+    SleepTime = st.slider("Sleep Time (Hours)", 0, 24, 7)
+    Asthma = st.selectbox("Asthma", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    KidneyDisease = st.selectbox("Kidney Disease", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    SkinCancer = st.selectbox("Skin Cancer", [0, 1], format_func=lambda x: "Yes" if x == 1 else "No")
+    BMI_Category = st.selectbox("BMI Category", range(6), format_func=lambda x: ["Underweight", "Normal weight", "Overweight", "Obesity I", "Obesity II", "Obesity III"][x])
+    NewAge = st.selectbox("Age Group", range(3), format_func=lambda x: ["Young", "Adult", "Old"][x])
+    
+    # Submit button for validation
+    submit_button = st.form_submit_button("Validate")
+
+# Run the prediction if the form is submitted
+if submit_button:
+    # Collect input values into a DataFrame for scaling
+    input_data = np.array([[Smoking, AlcoholDrinking, Stroke, PhysicalHealth, DiffWalking, Sex, Diabetic,
+                            PhysicalActivity, GenHealth, SleepTime, Asthma, KidneyDisease, SkinCancer, BMI_Category, NewAge]])
+    input_df = pd.DataFrame(input_data, columns=feature_names)
+
+    # Scale the input data
+    scaled_input = scaler.transform(input_df)
+
+    # Make prediction
+    prediction = rf_model.predict(scaled_input)
+    prediction_proba = rf_model.predict_proba(scaled_input)
+    
+    # Display result with styling and icons
+    if prediction[0] == 1:
+        result = "High Risk ⚠️"
+        color = "#D9534F"  # Red color for high risk
+    else:
+        result = "Low Risk ✅"
+        color = "#5CB85C"  # Green color for low risk
+    probability = f"{prediction_proba[0][prediction[0]]:.2f}"
+    probability_text = f"<p style='font-size: 1.2em; color: {color};'><strong>Probability: {float(probability):.2%}</strong></p>"
+    result_text = f"<h3 style='color: {color};'>{result}</h3>"
+
+    # Display the formatted result in the sidebar
+    st.sidebar.subheader("Prediction Result")
+    st.sidebar.write(f"<p style='font-size: 1.2em; color: {color};'><strong>Probability: {float(probability):.2%}</strong></p>")
+    st.sidebar.write(f"<h3 style='color: {color};'>{result}</h3>")
+
+
+
+
+
 
 # Footer with a call-to-action and additional icons
 st.markdown("---")
